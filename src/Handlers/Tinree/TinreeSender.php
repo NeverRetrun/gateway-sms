@@ -4,13 +4,14 @@ namespace Sms\Handlers\Tinree;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Http\Message\ResponseInterface;
 use Sms\Exceptions\InvalidSmsMessage;
 use Sms\Exceptions\SmsSendException;
 use Sms\Handlers\SmsMessage;
 use Sms\Handlers\SmsSender;
 use Sms\Handlers\Tinree\Config\TinreeConfig;
 
-class TinreeSender implements SmsSender
+class TinreeSender extends SmsSender
 {
     const BASE_URI = 'http://api.tinree.com/api/v2';
 
@@ -38,37 +39,32 @@ class TinreeSender implements SmsSender
      * 发送天瑞云短信
      * @param SmsMessage $smsMessage
      */
-    public function send(SmsMessage $smsMessage): void
+    public function send(SmsMessage $smsMessage): ResponseInterface
     {
-        if ($smsMessage instanceof Tinreeable === false) {
+        if ($smsMessage instanceof TinreeAble === false) {
             throw new InvalidSmsMessage('invalid tinree sms message');
         }
 
         $tinreeSmsMessage = $smsMessage->toTinreeSmsMessage();
 
-        try {
-            if ($tinreeSmsMessage->isSingleMobile()) {
-                $this->sendSingleSms($tinreeSmsMessage);
-            } else {
-                $this->sendBatchSms($tinreeSmsMessage);
-            }
-        }catch (GuzzleException $exception) {
-            throw new SmsSendException(
-                $exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
+        if ($tinreeSmsMessage->isSingleMobile()) {
+            $response = $this->sendSingleSms($tinreeSmsMessage);
+        } else {
+            $response = $this->sendBatchSms($tinreeSmsMessage);
         }
+
+        return $response;
     }
 
     /**
      * 发送批量短信
      * @param TinreeSmsMessage $tinreeSmsMessage
+     * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function sendBatchSms(TinreeSmsMessage $tinreeSmsMessage)
+    protected function sendBatchSms(TinreeSmsMessage $tinreeSmsMessage): ResponseInterface
     {
-        $responseJson = $this->http->request(
+        return $this->http->request(
             'POST',
             'send',
             [
@@ -81,22 +77,18 @@ class TinreeSender implements SmsSender
                     'content' => implode('##', $tinreeSmsMessage->params),
                 ],
             ]
-        )
-            ->getBody()
-            ->getContents();
-
-        $response = json_decode($responseJson, true);
-        $this->assertResponseException($response);
+        );
     }
 
     /**
      * 发送单条短信
      * @param TinreeSmsMessage $tinreeSmsMessage
+     * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function sendSingleSms(TinreeSmsMessage $tinreeSmsMessage)
+    protected function sendSingleSms(TinreeSmsMessage $tinreeSmsMessage): ResponseInterface
     {
-        $responseJson = $this->http->request(
+        return $this->http->request(
             'POST',
             'single_send',
             [
@@ -109,22 +101,16 @@ class TinreeSender implements SmsSender
                     'content' => implode('##', $tinreeSmsMessage->params),
                 ],
             ]
-        )
-            ->getBody()
-            ->getContents();
-
-        $response = json_decode($responseJson, true);
-        $this->assertResponseException($response);
-
+        );
     }
 
     /**
      * 断言响应异常
-     * @param array $response
+     * @param ResponseInterface $response
      */
-    protected function assertResponseException(array $response): void
+    protected function assertResponseException(ResponseInterface $response): void
     {
-        $map = [
+        $map                  = [
             '9001' => '签名格式不正确',
             '9002' => '参数未赋值',
             '9003' => '手机号码格式不正确',
@@ -152,12 +138,21 @@ class TinreeSender implements SmsSender
             '10005' => '模版类型不存在',
             '10006' => '模版和内容不匹配',
         ];
-
-        $errMessage = $map[$response['code']] ?? null;
+        $responseContentArray = json_decode($response->getBody()->getContents(), true);
+        $errMessage           = $map[$responseContentArray['code']] ?? null;
         if ($errMessage === null) {
             return;
         }
 
-        throw new SmsSendException('天瑞云：' .$errMessage);
+        throw new SmsSendException(
+            $this->getTypePhrase(),
+            $errMessage,
+            $response
+        );
+    }
+
+    public function getTypePhrase(): string
+    {
+        return '天瑞云';
     }
 }

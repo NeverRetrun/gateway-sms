@@ -1,21 +1,26 @@
 <?php declare(strict_types=1);
 
 
-namespace Sms\Handlers\Tinree;
+namespace Sms\Handlers\TencentSms;
+
 
 use Sms\Handlers\SmsMessage;
 
 /**
- * 天瑞云短信实体
- * @see http://cms.tinree.com/static/index.html#/home/developer/interface/info/2
- * @package Sms\Handle\Tinree
+ * @see https://cloud.tencent.com/document/product/382/38778
  */
-class TinreeSmsMessage extends SmsMessage
+class TencentSmsMessage extends SmsMessage
 {
+    /**
+     * @var string 短信SdkAppId在 添加应用后生成的实际SdkAppId，示例如1400006666。
+     */
+    public $smsSdkAppId;
+
     public function __construct(
         string $sign,
         string $templateId,
         $mobile,
+        string $smsSdkAppId,
         array $params = []
     )
     {
@@ -23,5 +28,6 @@ class TinreeSmsMessage extends SmsMessage
         $this->templateId = $templateId;
         $this->mobile = $mobile;
         $this->params = $params;
+        $this->smsSdkAppId = $smsSdkAppId;
     }
 }

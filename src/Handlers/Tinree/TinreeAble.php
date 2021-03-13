@@ -4,8 +4,7 @@
 namespace Sms\Handlers\Tinree;
 
 
-
-interface Tinreeable
+interface TinreeAble
 {
     public function toTinreeSmsMessage(): TinreeSmsMessage;
 }
