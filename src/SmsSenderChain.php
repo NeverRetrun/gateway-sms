@@ -59,7 +59,7 @@ class SmsSenderChain
         return $handle();
     }
 
-    protected function getSendSmsCallback($smsMessage): callable
+    protected function getSendSmsCallback(SmsMessage $smsMessage): callable
     {
         return function () use ($smsMessage) {
             $exceptions = new Exceptions();
@@ -92,7 +92,6 @@ class SmsSenderChain
     {
         $this->middlewares[] = function (callable $sendSms, SmsMessage $smsMessage) use ($duration, $sendMaxNumber) {
             $rateLimiter = new RateLimiter($this->cache, $smsMessage);
-
             $rateLimiter->check($sendMaxNumber);
             $result = $sendSms();
             $rateLimiter->incr($duration);
@@ -117,6 +116,8 @@ class SmsSenderChain
 
             return $result;
         };
+
+        return $this;
     }
 
     /**

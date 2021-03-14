@@ -72,7 +72,7 @@ class RateLimiter
     protected function getCacheKeys(): array
     {
         if ($this->smsMessage->isSingleMobile()) {
-            $mobiles = [$this->smsMessage->mobile];
+            $mobiles = [$this->smsMessage->getSingleMobile()];
         } else {
             $mobiles = $this->smsMessage->mobile;
         }
