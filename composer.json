@@ -2,7 +2,7 @@
   "name": "cvoid/sms",
   "description": "sms send api",
   "minimum-stability": "stable",
-  "license": "apache",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "cvoid",
