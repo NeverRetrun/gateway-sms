@@ -45,16 +45,15 @@ class TencentSignature
         $canonicalHeaders = "content-type:" . $this->request->getHeaderLine("Content-Type") . "\n" .
             "host:" . $this->request->getHeaderLine("Host") . "\n";
         $signedHeaders    = "content-type;host";
-
         $canonicalRequest = $this->request->getMethod() . "\n" .
             $this->request->getUri()->getPath() . "\n" .
             '' . "\n" .
             $canonicalHeaders . "\n" .
             $signedHeaders . "\n" .
-            hash("SHA256", $this->request->getBody()->getContents());
+            hash("SHA256", (string)$this->request->getBody());
 
         $algo            = "TC3-HMAC-SHA256";
-        $date            = gmdate("Y-m-d", $this->request->getHeaderLine("X-TC-Timestamp"));
+        $date            = gmdate("Y-m-d", (int)$this->request->getHeaderLine("X-TC-Timestamp"));
         $service         = explode(".", $this->request->getHeaderLine('Host'))[0];
         $credentialScope = $date . "/" . $service . "/tc3_request";
         $str2sign        = $algo . "\n" .

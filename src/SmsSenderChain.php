@@ -54,7 +54,7 @@ class SmsSenderChain
      * 发送短信
      * @param SmsMessage $smsMessage
      */
-    public function sendBySender(SmsMessage $smsMessage): void
+    protected function sendBySender(SmsMessage $smsMessage): void
     {
         $sender   = array_shift($this->smsSenders);
         $response = $sender->send($smsMessage);

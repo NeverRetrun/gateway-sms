@@ -27,10 +27,18 @@ abstract class SmsMessage
     public $params;
 
     /**
+     * @var string 短信名称
+     */
+    public $smsMessageName;
+
+    /**
      * 获取短信简称
      * @return string
      */
-    abstract public function getSmsMessageName(): string;
+    public function getSmsMessageName(): string
+    {
+        return $this->smsMessageName;
+    }
 
     /**
      * 获取数组形式mobile
@@ -58,5 +66,18 @@ abstract class SmsMessage
         }
 
         return false;
+    }
+
+    /**
+     * 获取单个手机号
+     * @return string
+     */
+    public function getSingleMobile(): string
+    {
+        if(is_array($this->mobile)) {
+            return $this->mobile[0];
+        }
+
+        return $this->mobile;
     }
 }

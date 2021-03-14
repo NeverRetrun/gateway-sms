@@ -13,12 +13,14 @@ use Sms\Handlers\SmsMessage;
 class TinreeSmsMessage extends SmsMessage
 {
     public function __construct(
+        string $smsMessageName,
         string $sign,
         string $templateId,
         $mobile,
         array $params = []
     )
     {
+        $this->smsMessageName = $smsMessageName;
         $this->sign = $sign;
         $this->templateId = $templateId;
         $this->mobile = $mobile;

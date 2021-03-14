@@ -4,6 +4,7 @@ namespace Sms\Handlers\Tinree;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 use Sms\Exceptions\InvalidSmsMessage;
 use Sms\Exceptions\SmsSendException;
@@ -13,7 +14,7 @@ use Sms\Handlers\Tinree\Config\TinreeConfig;
 
 class TinreeSender extends SmsSender
 {
-    const BASE_URI = 'http://api.tinree.com/api/v2';
+    const BASE_URI = 'http://api.tinree.com/api/v2/';
 
     /**
      * @var Client
@@ -47,10 +48,14 @@ class TinreeSender extends SmsSender
 
         $tinreeSmsMessage = $smsMessage->toTinreeSmsMessage();
 
-        if ($tinreeSmsMessage->isSingleMobile()) {
-            $response = $this->sendSingleSms($tinreeSmsMessage);
-        } else {
-            $response = $this->sendBatchSms($tinreeSmsMessage);
+        try {
+            if ($tinreeSmsMessage->isSingleMobile()) {
+                $response = $this->sendSingleSms($tinreeSmsMessage);
+            } else {
+                $response = $this->sendBatchSms($tinreeSmsMessage);
+            }
+        } catch (RequestException $e) {
+            var_dump($e->getResponse()->getBody()->getContents());die;
         }
 
         return $response;
@@ -97,7 +102,7 @@ class TinreeSender extends SmsSender
                     'secret' => $this->config->secret,
                     'sign' => $tinreeSmsMessage->sign,
                     'templateId' => $tinreeSmsMessage->templateId,
-                    'mobile' => $tinreeSmsMessage->mobile,
+                    'mobile' => $tinreeSmsMessage->getSingleMobile(),
                     'content' => implode('##', $tinreeSmsMessage->params),
                 ],
             ]

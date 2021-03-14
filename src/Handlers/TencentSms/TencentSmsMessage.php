@@ -17,6 +17,7 @@ class TencentSmsMessage extends SmsMessage
     public $smsSdkAppId;
 
     public function __construct(
+        string $smsMessageName,
         string $sign,
         string $templateId,
         $mobile,
@@ -24,10 +25,25 @@ class TencentSmsMessage extends SmsMessage
         array $params = []
     )
     {
-        $this->sign = $sign;
-        $this->templateId = $templateId;
-        $this->mobile = $mobile;
-        $this->params = $params;
-        $this->smsSdkAppId = $smsSdkAppId;
+        $this->smsMessageName = $smsMessageName;
+        $this->sign           = $sign;
+        $this->templateId     = $templateId;
+        $this->mobile         = $mobile;
+        $this->params         = $params;
+        $this->smsSdkAppId    = $smsSdkAppId;
+    }
+
+    /**
+     * 腾讯云需要加国际号
+     * @return array
+     */
+    public function getMobileForArray(): array
+    {
+        return array_map(
+            function (string $mobile): string {
+                return "+86{$mobile}";
+            },
+            parent::getMobileForArray()
+        );
     }
 }

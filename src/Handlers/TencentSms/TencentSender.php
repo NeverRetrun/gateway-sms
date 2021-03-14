@@ -60,6 +60,7 @@ class TencentSender extends SmsSender
                 'X-TC-Action' => 'SendSms',
                 'X-TC-Version' => '2019-07-11',
                 'X-TC-Region' => 'ap-shanghai',
+                'X-TC-Timestamp' => time(),
                 'Content-Type' => 'application/json'
             ],
             json_encode(
@@ -77,7 +78,8 @@ class TencentSender extends SmsSender
         $authorization = (new TencentSignature($request, $this->config))
             ->getAuthorization();
 
-        $request->withHeader('Authorization', $authorization);
+        $request = $request->withHeader('Authorization', $authorization);
+
         return $this->http->send($request);
     }
 
@@ -86,12 +88,12 @@ class TencentSender extends SmsSender
      */
     protected function assertResponseException(ResponseInterface $response): void
     {
-        $tmpResponse = json_decode($response->getBody(), true)["Response"];
+        $tmpResponse = json_decode($response->getBody()->getContents(), true)["Response"];
         if (array_key_exists("Error", $tmpResponse)) {
             throw new SmsSendException(
                 $this->getTypePhrase(),
                 $tmpResponse["Error"]["Message"],
-                $tmpResponse
+                $response
             );
         }
     }

@@ -24,8 +24,12 @@ class Exceptions extends Exception
      * 获取第一个异常
      * @return Exception
      */
-    public function first(): Exception
+    public function first(): ?Exception
     {
+        if (!isset($this->exceptions[0])) {
+            return null;
+        }
+
         return $this->exceptions[0];
     }
 
