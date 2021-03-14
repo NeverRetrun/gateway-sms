@@ -27,10 +27,16 @@ abstract class SmsMessage
     public $params;
 
     /**
+     * 获取短信简称
+     * @return string
+     */
+    abstract public function getSmsMessageName(): string;
+
+    /**
      * 获取数组形式mobile
      * @return array
      */
-    public function getMobileForArray():array
+    public function getMobileForArray(): array
     {
         return is_string($this->mobile)
             ? [$this->mobile]
@@ -41,7 +47,7 @@ abstract class SmsMessage
      * 判断是否是单个手机号码发送短信
      * @return bool
      */
-    public function isSingleMobile():bool
+    public function isSingleMobile(): bool
     {
         if (is_string($this->mobile)) {
             return true;

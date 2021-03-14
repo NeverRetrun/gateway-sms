@@ -5,6 +5,8 @@ namespace Sms\Handlers\TencentSms\Config;
 
 
 use Sms\Handlers\SmsConfig;
+use Sms\Handlers\SmsSender;
+use Sms\Handlers\TencentSms\TencentSender;
 
 class TencentConfig implements SmsConfig
 {
@@ -27,5 +29,14 @@ class TencentConfig implements SmsConfig
     {
         $this->secretKey = $secretKey;
         $this->secretId = $secretId;
+    }
+
+    /**
+     * 创建发送短信类
+     * @return SmsSender
+     */
+    public function createSender(): SmsSender
+    {
+        return new TencentSender($this);
     }
 }

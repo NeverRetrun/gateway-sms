@@ -3,6 +3,8 @@
 namespace Sms\Handlers\Tinree\Config;
 
 use Sms\Handlers\SmsConfig;
+use Sms\Handlers\SmsSender;
+use Sms\Handlers\Tinree\TinreeSender;
 
 class TinreeConfig implements SmsConfig
 {
@@ -25,5 +27,14 @@ class TinreeConfig implements SmsConfig
     {
         $this->accessKey = $accessKey;
         $this->secret = $secret;
+    }
+
+    /**
+     * 创建天瑞云短信类
+     * @return SmsSender
+     */
+    public function createSender(): SmsSender
+    {
+        return new TinreeSender($this);
     }
 }
