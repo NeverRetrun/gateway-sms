@@ -7,7 +7,9 @@ class SimpleCache implements \Psr\SimpleCache\CacheInterface
     /**
      * @var array
      */
-    protected $store = [];
+    protected $store = [
+        'sms_rate_limit_18958904395_test' => 1,
+    ];
 
     public function get($key, $default = null)
     {

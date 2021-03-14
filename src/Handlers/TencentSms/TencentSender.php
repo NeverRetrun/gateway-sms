@@ -46,11 +46,12 @@ class TencentSender extends SmsSender
         }
 
         return $this->sendSms(
+            $smsMessage,
             $smsMessage->toTencentSmsMessage()
         );
     }
 
-    protected function sendSms(TencentSmsMessage $smsMessage): ResponseInterface
+    protected function sendSms(SmsMessage $smsMessage, TencentSmsMessage $tencentSmsMessage): ResponseInterface
     {
         $request = new Request(
             'POST',
@@ -65,11 +66,11 @@ class TencentSender extends SmsSender
             ],
             json_encode(
                 [
-                    'PhoneNumberSet' => $smsMessage->getMobileForArray(),
-                    'TemplateID' => $smsMessage->templateId,
-                    'SmsSdkAppid' => $smsMessage->smsSdkAppId,
-                    'Sign' => $smsMessage->sign,
-                    'TemplateParamSet' => $smsMessage->params,
+                    'PhoneNumberSet' => $this->getAppendedAreaCodeMobiles($smsMessage->getMobileForArray()),
+                    'TemplateID' => $tencentSmsMessage->templateId,
+                    'SmsSdkAppid' => $tencentSmsMessage->smsSdkAppId,
+                    'Sign' => $tencentSmsMessage->sign,
+                    'TemplateParamSet' => $tencentSmsMessage->params,
                 ]
                 , JSON_UNESCAPED_UNICODE
             )
@@ -96,6 +97,21 @@ class TencentSender extends SmsSender
                 $response
             );
         }
+    }
+
+    /**
+     * 获取追加地区码的手机号
+     * @param array $mobiles
+     * @return array
+     */
+    protected function getAppendedAreaCodeMobiles(array $mobiles): array
+    {
+        $result = [];
+        foreach ($mobiles as $mobile) {
+            $result[] = "+86$mobile";
+        }
+
+        return $result;
     }
 
     public function getTypePhrase(): string

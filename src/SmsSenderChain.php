@@ -4,6 +4,7 @@
 namespace Sms;
 
 
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\SimpleCache\CacheInterface;
 use Sms\Exceptions\Exceptions;
 use Sms\Exceptions\SmsSendException;
@@ -67,7 +68,7 @@ class SmsSenderChain
             while (count($this->smsSenders) !== 0) {
                 try {
                     $this->sendBySender($smsMessage);
-                } catch (SmsSendException $sendException) {
+                } catch (SmsSendException|GuzzleException $sendException) {
                     $exceptions->appendException($sendException);
                 }
 

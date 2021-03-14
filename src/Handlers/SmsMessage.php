@@ -12,34 +12,9 @@ abstract class SmsMessage
     public $mobile;
 
     /**
-     * @var string 平台上申请的接口短信签名或者签名ID
-     */
-    public $sign;
-
-    /**
-     * @var string 平台上申请的接口短信模板Id
-     */
-    public $templateId;
-
-    /**
-     * @var array 平台发送的短信内容是模板变量内容
-     */
-    public $params;
-
-    /**
      * @var string 短信名称
      */
     public $smsMessageName;
-
-
-    /**
-     * 获取短信简称
-     * @return string
-     */
-    public function getSmsMessageName(): string
-    {
-        return $this->smsMessageName;
-    }
 
     /**
      * 获取数组形式mobile

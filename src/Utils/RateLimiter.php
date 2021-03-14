@@ -79,7 +79,7 @@ class RateLimiter
 
         $cacheKeys = [];
         foreach ($mobiles as $mobile) {
-            $cacheKeys[] = "sms_rate_limit_{$mobile}_{$this->smsMessage->getSmsMessageName()}";
+            $cacheKeys[] = "sms_rate_limit_{$mobile}_{$this->smsMessage->smsMessageName}";
         }
 
         return $cacheKeys;

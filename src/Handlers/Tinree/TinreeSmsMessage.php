@@ -3,27 +3,38 @@
 
 namespace Sms\Handlers\Tinree;
 
-use Sms\Handlers\SmsMessage;
 
 /**
  * 天瑞云短信实体
  * @see http://cms.tinree.com/static/index.html#/home/developer/interface/info/2
  * @package Sms\Handle\Tinree
  */
-class TinreeSmsMessage extends SmsMessage
+class TinreeSmsMessage
 {
+    /**
+     * @var string 签名
+     */
+    public $sign;
+
+    /**
+     * @var string 模版id
+     */
+    public $templateId;
+
+    /**
+     * @var array 参数 一维数组
+     */
+    public $params;
+
+
     public function __construct(
-        string $smsMessageName,
         string $sign,
         string $templateId,
-        $mobile,
         array $params = []
     )
     {
-        $this->smsMessageName = $smsMessageName;
-        $this->sign = $sign;
+        $this->sign       = $sign;
         $this->templateId = $templateId;
-        $this->mobile = $mobile;
-        $this->params = $params;
+        $this->params     = $params;
     }
 }

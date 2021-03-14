@@ -60,7 +60,7 @@ class SmsCodeHandler
 
         $cacheKeys = [];
         foreach ($mobiles as $mobile) {
-            $cacheKeys[] = "sms_code_verify_{$mobile}_{$this->smsMessage->getSmsMessageName()}";
+            $cacheKeys[] = "sms_code_verify_{$mobile}_{$this->smsMessage->smsMessageName}";
         }
 
         return $cacheKeys;

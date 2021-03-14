@@ -4,7 +4,6 @@ namespace Sms\Handlers\Tinree;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
 use Sms\Exceptions\InvalidSmsMessage;
 use Sms\Exceptions\SmsSendException;
@@ -39,6 +38,8 @@ class TinreeSender extends SmsSender
     /**
      * 发送天瑞云短信
      * @param SmsMessage $smsMessage
+     * @return ResponseInterface
+     * @throws GuzzleException
      */
     public function send(SmsMessage $smsMessage): ResponseInterface
     {
@@ -48,14 +49,10 @@ class TinreeSender extends SmsSender
 
         $tinreeSmsMessage = $smsMessage->toTinreeSmsMessage();
 
-        try {
-            if ($tinreeSmsMessage->isSingleMobile()) {
-                $response = $this->sendSingleSms($tinreeSmsMessage);
-            } else {
-                $response = $this->sendBatchSms($tinreeSmsMessage);
-            }
-        } catch (RequestException $e) {
-            var_dump($e->getResponse()->getBody()->getContents());die;
+        if ($smsMessage->isSingleMobile()) {
+            $response = $this->sendSingleSms($smsMessage, $tinreeSmsMessage);
+        } else {
+            $response = $this->sendBatchSms($smsMessage, $tinreeSmsMessage);
         }
 
         return $response;
@@ -63,11 +60,15 @@ class TinreeSender extends SmsSender
 
     /**
      * 发送批量短信
+     * @param SmsMessage $smsMessage
      * @param TinreeSmsMessage $tinreeSmsMessage
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function sendBatchSms(TinreeSmsMessage $tinreeSmsMessage): ResponseInterface
+    protected function sendBatchSms(
+        SmsMessage $smsMessage,
+        TinreeSmsMessage $tinreeSmsMessage
+    ): ResponseInterface
     {
         return $this->http->request(
             'POST',
@@ -78,7 +79,7 @@ class TinreeSender extends SmsSender
                     'secret' => $this->config->secret,
                     'sign' => $tinreeSmsMessage->sign,
                     'templateId' => $tinreeSmsMessage->templateId,
-                    'mobile' => implode(',', $tinreeSmsMessage->mobile),
+                    'mobile' => implode(',', $smsMessage->mobile),
                     'content' => implode('##', $tinreeSmsMessage->params),
                 ],
             ]
@@ -87,11 +88,15 @@ class TinreeSender extends SmsSender
 
     /**
      * 发送单条短信
+     * @param SmsMessage $smsMessage
      * @param TinreeSmsMessage $tinreeSmsMessage
      * @return ResponseInterface
      * @throws GuzzleException
      */
-    protected function sendSingleSms(TinreeSmsMessage $tinreeSmsMessage): ResponseInterface
+    protected function sendSingleSms(
+        SmsMessage $smsMessage,
+        TinreeSmsMessage $tinreeSmsMessage
+    ): ResponseInterface
     {
         return $this->http->request(
             'POST',
@@ -102,7 +107,7 @@ class TinreeSender extends SmsSender
                     'secret' => $this->config->secret,
                     'sign' => $tinreeSmsMessage->sign,
                     'templateId' => $tinreeSmsMessage->templateId,
-                    'mobile' => $tinreeSmsMessage->getSingleMobile(),
+                    'mobile' => $smsMessage->getSingleMobile(),
                     'content' => implode('##', $tinreeSmsMessage->params),
                 ],
             ]
