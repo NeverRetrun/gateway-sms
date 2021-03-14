@@ -1,10 +1,11 @@
 <?php declare(strict_types=1);
 
 
-namespace Sms\Throttle;
+namespace Sms\Utils;
 
 
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 use Sms\Exceptions\RateLimitException;
 use Sms\Handlers\SmsMessage;
 
@@ -15,19 +16,23 @@ class RateLimiter
      */
     protected $cache;
 
-    public function __construct(CacheInterface $cache)
+    /**
+     * @var SmsMessage
+     */
+    protected $smsMessage;
+
+    public function __construct(CacheInterface $cache, SmsMessage $smsMessage)
     {
         $this->cache = $cache;
+        $this->smsMessage = $smsMessage;
     }
 
     /**
      * 限制发送短信速率
-     * @param SmsMessage $smsMessage
-     * @param int $duration
      * @param int $sendMaxNumber
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function limit(SmsMessage $smsMessage, int $duration, int $sendMaxNumber): void
+    public function check(int $sendMaxNumber): void
     {
         if ($sendMaxNumber <= 0) {
             throw new \InvalidArgumentException('send max number not lt 0');
@@ -36,45 +41,45 @@ class RateLimiter
         /**
          * 这里不解决并发问题 不采用原子计数
          */
-        $cacheKeys = $this->getCacheKeys($smsMessage);
-        $cacheKeyWithSendNumberMap = [];
+        $cacheKeys = $this->getCacheKeys();
         foreach ($cacheKeys as $cacheKey) {
             $sendNumber = $this->cache->get($cacheKey, 0);
 
             if ($sendNumber >= $sendMaxNumber) {
-                throw new RateLimitException($smsMessage);
+                throw new RateLimitException($this->smsMessage);
             }
-
-            $cacheKeyWithSendNumberMap[$cacheKey] = $sendNumber;
         }
+    }
 
-        /**
-         * TODO 这里每次设置过期时间会重置过期时间 这里先简单实现
-         */
+    /**
+     * 自增
+     * @param int $duration
+     * @throws InvalidArgumentException
+     */
+    public function incr(int $duration): void
+    {
+        $cacheKeys = $this->getCacheKeys();
         foreach ($cacheKeys as $cacheKey) {
-            $sendNumber = $cacheKeyWithSendNumberMap[$cacheKey];
+            $sendNumber = $this->cache->get($cacheKey, 0);
             $this->cache->set($cacheKey, ++$sendNumber, $duration);
         }
     }
 
-
-
     /**
      * 获取缓存Key
-     * @param SmsMessage $smsMessage
      * @return array
      */
-    protected function getCacheKeys(SmsMessage $smsMessage): array
+    protected function getCacheKeys(): array
     {
-        if ($smsMessage->isSingleMobile()) {
-            $mobiles = [$smsMessage->mobile];
+        if ($this->smsMessage->isSingleMobile()) {
+            $mobiles = [$this->smsMessage->mobile];
         } else {
-            $mobiles = $smsMessage->mobile;
+            $mobiles = $this->smsMessage->mobile;
         }
 
         $cacheKeys = [];
         foreach ($mobiles as $mobile) {
-            $cacheKeys[] = "sms_rate_limit_{$mobile}_{$smsMessage->getSmsMessageName()}";
+            $cacheKeys[] = "sms_rate_limit_{$mobile}_{$this->smsMessage->getSmsMessageName()}";
         }
 
         return $cacheKeys;

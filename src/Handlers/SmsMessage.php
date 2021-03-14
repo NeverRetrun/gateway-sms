@@ -31,6 +31,7 @@ abstract class SmsMessage
      */
     public $smsMessageName;
 
+
     /**
      * 获取短信简称
      * @return string
