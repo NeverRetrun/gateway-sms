@@ -5,6 +5,7 @@ namespace Sms\Utils;
 
 
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 use Sms\Exceptions\SmsCodeException;
 use Sms\Handlers\SmsMessage;
 
@@ -26,7 +27,13 @@ class SmsCodeHandler
         $this->smsMessage = $smsMessage;
     }
 
-    public function check(string $code): bool
+    /**
+     * @param string $code
+     * @param bool $ifSuccessDeleted 是否如果验证成功就直接删除缓存
+     * @return bool
+     * @throws SmsCodeException|InvalidArgumentException
+     */
+    public function check(string $code, bool $ifSuccessDeleted = true): bool
     {
         $cacheKeys = $this->getCacheKeys();
         foreach ($cacheKeys as $cacheKey) {
@@ -35,6 +42,8 @@ class SmsCodeHandler
                 throw new SmsCodeException();
             }
         }
+        
+        $ifSuccessDeleted && $this->cache->deleteMultiple($cacheKeys);
 
         return true;
     }
