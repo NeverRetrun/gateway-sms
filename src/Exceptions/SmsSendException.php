@@ -4,11 +4,10 @@
 namespace Sms\Exceptions;
 
 
-use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
-use Throwable;
 
-class SmsSendException extends \RuntimeException
+
+class SmsSendException extends \RuntimeException implements StringAbleInterface
 {
     /**
      * @var string 短信类型
@@ -44,5 +43,10 @@ class SmsSendException extends \RuntimeException
             $this->message,
             $this->response->getBody()->getContents()
         );
+    }
+
+    public function toString(): string
+    {
+        return (string)$this;
     }
 }

@@ -5,8 +5,10 @@ namespace Sms;
 
 
 use GuzzleHttp\Exception\GuzzleException;
+use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Sms\Exceptions\Exceptions;
+use Sms\Exceptions\SmsGuzzleException;
 use Sms\Exceptions\SmsSendException;
 use Sms\Handlers\SmsMessage;
 use Sms\Handlers\SmsSender;
@@ -26,15 +28,25 @@ class SmsSenderChain
     protected $middlewares;
 
     /**
-     * @var CacheInterface
+     * @var null|CacheInterface
      */
     protected $cache;
 
-    public function __construct(array $smsSenders, CacheInterface $cache)
+    /**
+     * @var null|LoggerInterface
+     */
+    protected $logger;
+
+    public function __construct(
+        array $smsSenders,
+        ?CacheInterface $cache,
+        ?LoggerInterface $logger
+    )
     {
         shuffle($smsSenders);
         $this->smsSenders = $smsSenders;
         $this->cache      = $cache;
+        $this->logger     = $logger;
     }
 
     /**
@@ -63,7 +75,7 @@ class SmsSenderChain
     protected function getSendSmsCallback(SmsMessage $smsMessage): callable
     {
         return function () use ($smsMessage) {
-            $exceptions = new Exceptions();
+            $exceptions = new Exceptions($this->logger);
             $result     = new SmsResult($exceptions, null);
             while (count($this->smsSenders) !== 0) {
                 try {
@@ -71,8 +83,11 @@ class SmsSenderChain
                         'response' => $response,
                         'type' => $type
                     ] = $this->sendBySender($smsMessage);
-                } catch (SmsSendException | GuzzleException $sendException) {
+                } catch (SmsSendException $sendException) {
                     $exceptions->appendException($sendException);
+                    continue;
+                } catch (GuzzleException $exception) {
+                    $exceptions->appendException(new SmsGuzzleException($exception));
                     continue;
                 }
 
@@ -82,9 +97,11 @@ class SmsSenderChain
             }
 
             if ($result->isSuccess === false) {
+                $exceptions->log();
                 throw $exceptions;
             }
 
+            $exceptions->log();
             return $result;
         };
     }

@@ -5,17 +5,24 @@ namespace Sms\Exceptions;
 
 
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class Exceptions extends Exception
 {
     /**
-     * @var Exception[]
+     * @var Exception|StringAbleInterface[]
      */
     public $exceptions;
 
-    public function __construct()
+    /**
+     * @var null|LoggerInterface
+     */
+    public $logger;
+
+    public function __construct(?LoggerInterface $logger)
     {
         $this->exceptions = [];
+        $this->logger     = $logger;
         parent::__construct('exceptions', 0, null);
     }
 
@@ -50,5 +57,19 @@ class Exceptions extends Exception
     {
         $this->exceptions[] = $exception;
         return $this;
+    }
+
+    /**
+     * 记录日志
+     */
+    public function log(): void
+    {
+        if ($this->logger === null) {
+            return;
+        }
+
+        foreach ($this->exceptions as $exception) {
+            $this->logger->error($exception->toString());
+        }
     }
 }
