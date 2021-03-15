@@ -69,6 +69,6 @@ class SmsSenderFactory
      */
     public function createChain(): SmsSenderChain
     {
-        return new SmsSenderChain($this->smsSenders, $this->cache);
+        return new SmsSenderChain($this->smsSenders, $this->cache, $this->logger);
     }
 }
