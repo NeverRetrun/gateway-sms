@@ -5,6 +5,7 @@ namespace Sms;
 
 
 use GuzzleHttp\Exception\GuzzleException;
+use JetBrains\PhpStorm\ArrayShape;
 use Psr\SimpleCache\CacheInterface;
 use Sms\Exceptions\Exceptions;
 use Sms\Exceptions\SmsSendException;
@@ -64,15 +65,20 @@ class SmsSenderChain
     {
         return function () use ($smsMessage) {
             $exceptions = new Exceptions();
-            $result     = new SmsResult($exceptions);
+            $result     = new SmsResult($exceptions, null);
             while (count($this->smsSenders) !== 0) {
                 try {
-                    $this->sendBySender($smsMessage);
+                    [
+                        'response' => $response ,
+                        'type' => $type
+                        ] = $this->sendBySender($smsMessage);
                 } catch (SmsSendException|GuzzleException $sendException) {
                     $exceptions->appendException($sendException);
+                    continue;
                 }
 
                 $result->isSuccess = true;
+                $result->successType = $type;
                 break;
             }
 
@@ -124,11 +130,17 @@ class SmsSenderChain
     /**
      * 发送短信
      * @param SmsMessage $smsMessage
+     * @return array
      */
-    protected function sendBySender(SmsMessage $smsMessage): void
+    protected function sendBySender(SmsMessage $smsMessage): array
     {
         $sender   = array_shift($this->smsSenders);
         $response = $sender->send($smsMessage);
         $sender->valid($response);
+
+        return [
+            'type' => $sender->getTypePhrase(),
+            'response' => $response
+        ];
     }
 }

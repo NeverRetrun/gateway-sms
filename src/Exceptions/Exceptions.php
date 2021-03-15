@@ -5,7 +5,6 @@ namespace Sms\Exceptions;
 
 
 use Exception;
-use Throwable;
 
 class Exceptions extends Exception
 {
