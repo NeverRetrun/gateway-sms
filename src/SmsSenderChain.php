@@ -25,7 +25,7 @@ class SmsSenderChain
     /**
      * @var callable[]
      */
-    protected $middlewares;
+    protected $middlewares = [];
 
     /**
      * @var null|CacheInterface

@@ -42,7 +42,7 @@ class SmsCodeHandler
                 throw new SmsCodeException();
             }
         }
-        
+
         $ifSuccessDeleted && $this->cache->deleteMultiple($cacheKeys);
 
         return true;
