@@ -6,7 +6,9 @@ namespace Sms;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Sms\Handlers\SmsConfig;
+use Sms\Handlers\SmsMessage;
 use Sms\Handlers\SmsSender;
+use Sms\Utils\SmsCodeHandler;
 
 class SmsSenderFactory
 {
@@ -38,8 +40,8 @@ class SmsSenderFactory
     )
     {
         $this->smsSenders = $smsSenders;
-        $this->cache = $cache;
-        $this->logger = $logger;
+        $this->cache      = $cache;
+        $this->logger     = $logger;
     }
 
     /**
@@ -70,5 +72,15 @@ class SmsSenderFactory
     public function createChain(): SmsSenderChain
     {
         return new SmsSenderChain($this->smsSenders, $this->cache, $this->logger);
+    }
+
+    /**
+     * 创建短信验证码帮助类
+     * @param SmsMessage $smsMessage
+     * @return SmsCodeHandler
+     */
+    public function createSmsCodeHandler(SmsMessage $smsMessage): SmsCodeHandler
+    {
+        return new SmsCodeHandler($this->cache, $smsMessage);
     }
 }
