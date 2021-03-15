@@ -50,8 +50,8 @@ class SmsSenderChain
 
         $handle = array_reduce(
             $this->middlewares,
-            function ($carry, callable $item) use($smsMessage) {
-                return function () use($item, $carry, $smsMessage) {
+            function ($carry, callable $item) use ($smsMessage) {
+                return function () use ($item, $carry, $smsMessage) {
                     return $item($carry, $smsMessage);
                 };
             },
@@ -69,15 +69,15 @@ class SmsSenderChain
             while (count($this->smsSenders) !== 0) {
                 try {
                     [
-                        'response' => $response ,
+                        'response' => $response,
                         'type' => $type
-                        ] = $this->sendBySender($smsMessage);
-                } catch (SmsSendException|GuzzleException $sendException) {
+                    ] = $this->sendBySender($smsMessage);
+                } catch (SmsSendException | GuzzleException $sendException) {
                     $exceptions->appendException($sendException);
                     continue;
                 }
 
-                $result->isSuccess = true;
+                $result->isSuccess   = true;
                 $result->successType = $type;
                 break;
             }
@@ -93,18 +93,21 @@ class SmsSenderChain
     /**
      * @param int $duration 时长 单位秒
      * @param int $sendMaxNumber 发送的最大限制
+     * @param string $cachePrefixName
      * @return $this
      */
-    public function rateLimit(int $duration, int $sendMaxNumber): SmsSenderChain
+    public function rateLimit(int $duration, int $sendMaxNumber, string $cachePrefixName): SmsSenderChain
     {
-        $this->middlewares[] = function (callable $sendSms, SmsMessage $smsMessage) use ($duration, $sendMaxNumber) {
-            $rateLimiter = new RateLimiter($this->cache, $smsMessage);
-            $rateLimiter->check($sendMaxNumber);
-            $result = $sendSms();
-            $rateLimiter->incr($duration);
+        $this->middlewares[] =
+            function (callable $sendSms, SmsMessage $smsMessage)
+            use ($duration, $sendMaxNumber, $cachePrefixName) {
+                $rateLimiter = new RateLimiter($this->cache, $smsMessage, $cachePrefixName);
+                $rateLimiter->check($sendMaxNumber);
+                $result = $sendSms();
+                $rateLimiter->incr($duration);
 
-            return $result;
-        };
+                return $result;
+            };
 
         return $this;
     }

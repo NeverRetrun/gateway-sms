@@ -21,10 +21,20 @@ class RateLimiter
      */
     protected $smsMessage;
 
-    public function __construct(CacheInterface $cache, SmsMessage $smsMessage)
+    /**
+     * @var string|null
+     */
+    protected $cachePrefixName;
+
+    public function __construct(
+        CacheInterface $cache,
+        SmsMessage $smsMessage,
+        ?string $cachePrefixName = null
+    )
     {
         $this->cache = $cache;
         $this->smsMessage = $smsMessage;
+        $this->cachePrefixName = $cachePrefixName;
     }
 
     /**
@@ -77,9 +87,11 @@ class RateLimiter
             $mobiles = $this->smsMessage->mobile;
         }
 
+        $cachePrefixName = $this->cachePrefixName ?? 'sms_rate_limit_';
+
         $cacheKeys = [];
         foreach ($mobiles as $mobile) {
-            $cacheKeys[] = "sms_rate_limit_{$mobile}_{$this->smsMessage->smsMessageName}";
+            $cacheKeys[] = "{$cachePrefixName}{$mobile}_{$this->smsMessage->smsMessageName}";
         }
 
         return $cacheKeys;
