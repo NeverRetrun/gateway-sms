@@ -5,7 +5,6 @@ namespace Sms;
 
 
 use GuzzleHttp\Exception\GuzzleException;
-use JetBrains\PhpStorm\ArrayShape;
 use Psr\SimpleCache\CacheInterface;
 use Sms\Exceptions\Exceptions;
 use Sms\Exceptions\SmsSendException;

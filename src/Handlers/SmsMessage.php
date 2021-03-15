@@ -17,6 +17,40 @@ abstract class SmsMessage
     public $smsMessageName;
 
     /**
+     * @param string|string[] $mobile
+     */
+    public function __construct($mobile)
+    {
+        if(is_int($mobile)) {
+            $mobile = (string)$mobile;
+        }
+
+        $this->mobile = $this->conversionMobileType($mobile);
+    }
+
+    /**
+     * @param mixed $mobile
+     * @return string|string[]
+     */
+    private function conversionMobileType($mobile)
+    {
+        if (is_array($mobile)) {
+            $result = [];
+
+            foreach ($mobile as $item) {
+                $result[] = (string)$item;
+            }
+            return $result;
+        }
+
+        if (is_int($mobile)) {
+            return (string)$mobile;
+        }
+
+        return $mobile;
+    }
+
+    /**
      * 获取数组形式mobile
      * @return array
      */
