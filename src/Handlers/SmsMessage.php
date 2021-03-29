@@ -25,6 +25,7 @@ abstract class SmsMessage
             $mobile = (string)$mobile;
         }
 
+        $this->smsMessageName = static::class;
         $this->mobile = $this->conversionMobileType($mobile);
     }
 
