@@ -42,7 +42,7 @@ class TencentSender extends SmsSender
     public function send(SmsMessage $smsMessage): ResponseInterface
     {
         if ($smsMessage instanceof TencentAble === false) {
-            throw new InvalidSmsMessage('invalid tinree sms message');
+            throw new InvalidSmsMessage('invalid tencent sms message');
         }
 
         return $this->sendSms(

@@ -155,6 +155,7 @@ class SmsSenderChain
     {
         $sender   = array_shift($this->smsSenders);
         $response = $sender->send($smsMessage);
+
         $sender->valid($response);
 
         return [
