@@ -7,6 +7,7 @@ namespace Sms\Handlers\AliSms;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 use Sms\Exceptions\InvalidSmsMessage;
+use Sms\Exceptions\SmsSendException;
 use Sms\Handlers\AliSms\Config\AliSmsConfig;
 use Sms\Handlers\AliSms\Signature\SignatureManager;
 use Sms\Handlers\AliSms\Signature\SignatureUtil;
@@ -16,6 +17,7 @@ use Sms\Utils\Random;
 
 class AliSmsSender extends SmsSender
 {
+    const SUCCESS = 'OK';
     const BASE_URI = 'http://dysmsapi.aliyuncs.com';
 
     /**
@@ -35,17 +37,25 @@ class AliSmsSender extends SmsSender
 
     public function __construct(AliSmsConfig $config)
     {
-        $this->http = new Client([
+        $this->http             = new Client([
             'base_uri' => self::BASE_URI,
             'timeout' => 1,
         ]);
         $this->signatureManager = new SignatureManager();
-        $this->config = $config;
+        $this->config           = $config;
     }
 
     protected function assertResponseException(ResponseInterface $response): void
     {
+        $tmpResponse = json_decode($response->getBody()->getContents(), true)["Response"];
 
+        if ($tmpResponse['Message'] !== self::SUCCESS || $tmpResponse['Code'] !== self::SUCCESS) {
+            throw new SmsSendException(
+                $this->getTypePhrase(),
+                $tmpResponse["Message"],
+                $response
+            );
+        }
     }
 
     /**
@@ -64,9 +74,9 @@ class AliSmsSender extends SmsSender
 
         $options = [
             'PhoneNumbers' => implode(',', $smsMessage->getMobileForArray()),
-            'SignName' =>$messageConfig->sign ,
+            'SignName' => $messageConfig->sign,
             'TemplateCode' => $messageConfig->templateCode,
-            'TemplateParam' => json_encode($messageConfig->params),
+            'TemplateParam' => $messageConfig->getParamsToJson(),
             'RegionId' => 'cn-hangzhou',
             'Format' => 'JSON',
             'SignatureMethod' => 'HMAC-SHA1',
@@ -82,7 +92,7 @@ class AliSmsSender extends SmsSender
             ->get($options['SignatureMethod'])
             ->sign(
                 SignatureUtil::convertString($options),
-                $this->config->accessSecret
+                $this->config->accessSecret . '&'
             );
 
         return $this->http->request(

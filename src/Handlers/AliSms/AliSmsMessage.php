@@ -27,8 +27,17 @@ class AliSmsMessage
         array $params = []
     )
     {
-        $this->sign        = $sign;
-        $this->templateCode  = $templateCode;
-        $this->params      = $params;
+        $this->sign         = $sign;
+        $this->templateCode = $templateCode;
+        $this->params       = $params;
+    }
+
+    public function getParamsToJson(): string
+    {
+        if (empty($this->params)) {
+            return json_encode(new \stdClass());
+        }
+
+        return json_encode($this->params);
     }
 }
