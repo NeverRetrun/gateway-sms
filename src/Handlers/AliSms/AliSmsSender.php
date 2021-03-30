@@ -47,7 +47,7 @@ class AliSmsSender extends SmsSender
 
     protected function assertResponseException(ResponseInterface $response): void
     {
-        $tmpResponse = json_decode($response->getBody()->getContents(), true)["Response"];
+        $tmpResponse = json_decode($response->getBody()->getContents(), true);
 
         if ($tmpResponse['Message'] !== self::SUCCESS || $tmpResponse['Code'] !== self::SUCCESS) {
             throw new SmsSendException(

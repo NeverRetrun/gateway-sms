@@ -25,11 +25,24 @@ abstract class SmsMessage
             $mobile = (string)$mobile;
         }
 
-        $this->smsMessageName = static::class;
+        $this->smsMessageName = $this->getDefaultSmsMessageName();
         $this->mobile = $this->conversionMobileType($mobile);
     }
 
     /**
+     * 获取默认的短信名称
+     * @return string
+     */
+    private function getDefaultSmsMessageName():string
+    {
+        $exploded = explode('\\', self::class);
+        $className = array_pop($exploded);
+
+        return "sms:{$className}";
+    }
+
+    /**
+     * 转化手机号类型 只有string与string[]
      * @param mixed $mobile
      * @return string|string[]
      */
