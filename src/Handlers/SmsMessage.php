@@ -4,6 +4,9 @@
 namespace Sms\Handlers;
 
 
+use App\Services\Sms\Exceptions\SmsException;
+use Sms\Exceptions\InvalidMobileException;
+
 abstract class SmsMessage
 {
     /**
@@ -27,6 +30,10 @@ abstract class SmsMessage
 
         $this->smsMessageName = $this->getDefaultSmsMessageName();
         $this->mobile = $this->conversionMobileType($mobile);
+
+        if ($this->isMobileValid($this->getMobileForArray()) === false) {
+            throw new InvalidMobileException();
+        }
     }
 
     /**
@@ -103,5 +110,21 @@ abstract class SmsMessage
         }
 
         return $this->mobile;
+    }
+
+    /**
+     * 判断手机号码
+     * @param array $mobiles
+     * @return bool
+     */
+    protected function isMobileValid(array $mobiles): bool
+    {
+        foreach ($mobiles as $mobile) {
+            if (is_numeric($mobile) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
