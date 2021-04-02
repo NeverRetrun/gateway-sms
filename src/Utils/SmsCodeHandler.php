@@ -21,10 +21,20 @@ class SmsCodeHandler
      */
     protected $smsMessage;
 
-    public function __construct(CacheInterface $cache, SmsMessage $smsMessage)
+    /**
+     * @var array
+     */
+    protected $testMobiles;
+
+    public function __construct(
+        CacheInterface $cache,
+        SmsMessage $smsMessage,
+        array $testMobiles = []
+    )
     {
-        $this->cache = $cache;
-        $this->smsMessage = $smsMessage;
+        $this->cache       = $cache;
+        $this->smsMessage  = $smsMessage;
+        $this->testMobiles = $testMobiles;
     }
 
     /**
@@ -35,6 +45,10 @@ class SmsCodeHandler
      */
     public function check(string $code, bool $ifSuccessDeleted = true): bool
     {
+        if ($this->isTestMobile()) {
+            return true;
+        }
+
         $cacheKeys = $this->getCacheKeys();
         foreach ($cacheKeys as $cacheKey) {
             $verifyCode = $this->cache->get($cacheKey);
@@ -48,7 +62,7 @@ class SmsCodeHandler
         return true;
     }
 
-    public function sent(int $duration, string $code):void
+    public function sent(int $duration, string $code): void
     {
         $cacheKeys = $this->getCacheKeys();
         foreach ($cacheKeys as $cacheKey) {
@@ -59,7 +73,7 @@ class SmsCodeHandler
     /**
      * @return string[]
      */
-    protected function getCacheKeys():array
+    protected function getCacheKeys(): array
     {
         if ($this->smsMessage->isSingleMobile()) {
             $mobiles = [$this->smsMessage->getSingleMobile()];
@@ -73,5 +87,17 @@ class SmsCodeHandler
         }
 
         return $cacheKeys;
+    }
+
+    /**
+     * 是否是测试账号
+     * @return bool
+     */
+    protected function isTestMobile(): bool
+    {
+        return in_array(
+            $this->smsMessage->getSingleMobile(),
+            $this->testMobiles
+        );
     }
 }

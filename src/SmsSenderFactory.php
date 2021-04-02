@@ -28,6 +28,11 @@ class SmsSenderFactory
     protected $logger;
 
     /**
+     * @var array
+     */
+    protected $testMobiles = [];
+
+    /**
      * SmsSenderFactory constructor.
      * @param array $smsSenders
      * @param CacheInterface|null $cache
@@ -66,6 +71,16 @@ class SmsSenderFactory
     }
 
     /**
+     * @param array $testMobiles
+     * @return SmsSenderFactory
+     */
+    public function setTestMobiles(array $testMobiles): SmsSenderFactory
+    {
+        $this->testMobiles = $testMobiles;
+        return $this;
+    }
+
+    /**
      * 创建发送短信链
      * @return SmsSenderChain
      */
@@ -81,6 +96,10 @@ class SmsSenderFactory
      */
     public function createSmsCodeHandler(SmsMessage $smsMessage): SmsCodeHandler
     {
-        return new SmsCodeHandler($this->cache, $smsMessage);
+        return new SmsCodeHandler(
+            $this->cache,
+            $smsMessage,
+            $this->testMobiles
+        );
     }
 }
